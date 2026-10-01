@@ -21,7 +21,7 @@
 <a href="https://github.com/acesava/acesava"><picture><source media="(max-width: 640px)" srcset="assets/project-display-mobile.svg" /><img src="assets/project-display.svg" width="100%" alt="Open The Display Engine — source code and artwork for this profile." /></picture></a>
 
 <p align="center">
-  <img src="assets/contributions.svg" width="100%" alt="A rainbow isometric landscape of GitHub activity. Each column represents one day; its height shows that day's contribution count." />
+  <picture><source media="(max-width: 640px)" srcset="assets/contributions-mobile.svg" /><img src="assets/contributions.svg" width="100%" alt="Combined Account Contribution topography — 6,715 supplied contributions from June 2018 through May 2026. Crystal height shows the daily count; dates absent from the archive remain unlisted." /></picture>
 </p>
 
 <details>
@@ -29,7 +29,7 @@
 
 - [Los Angeles restaurant study](https://github.com/acesava/la-korean-restaurants): reproducible estimates using health permits, open map data, and a Yelp check.
 - [Black bean noodles across neighborhoods](https://github.com/acesava/jjajangmyeon-restaurants): restaurant and menu research across Korean and Chinese neighborhoods in Los Angeles and San Francisco.
-- [Display source](scripts): the profile's SVG instruments are generated with Python. The contribution landscape refreshes daily with GitHub Actions; it is a snapshot of GitHub activity, not a live feed. Project-panel diagrams are decorative.
+- [Display source](scripts): the profile's SVG instruments are generated with Python. The combined-account landscape uses the contribution archive supplied by the profile owner: **6,715 contributions**, June 2018–May 2026. [View the daily counts](data/contributions.json). Missing dates are unlisted, not confirmed zeros. The daily display refresh preserves this archive. Project-panel diagrams are decorative.
 
 </details>
 
