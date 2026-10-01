@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="60" viewBox="0 0 1200 60" role="img" aria-label="End of transmission — acesava">
+<title>End of transmission — acesava</title>
+<defs>
+ <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0H4" stroke="#c8ffdb" opacity=".025"/></pattern>
+ <filter id="glow"><feGaussianBlur stdDeviation="1.3"/></filter>
+</defs>
+<style>text{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.blink{animation:blink 2.2s steps(1) infinite}.sweep{animation:sweep 12s linear infinite}@keyframes blink{0%,65%{opacity:1}66%,100%{opacity:.2}}@keyframes sweep{from{transform:translateX(0)}to{transform:translateX(262px)}}@media(prefers-reduced-motion:reduce){.blink,.sweep{animation:none}}</style>
+<rect width="1200" height="60" fill="#030908"/>
+<rect x="2" y="2" width="1196" height="56" fill="none" stroke="#56867a"/>
+<rect x="7" y="7" width="1186" height="46" fill="none" stroke="#1d3930"/>
+<text x="30" y="38" font-size="16" fill="#6d9a91" >END OF TRANSMISSION</text><path d="M420 20h370" stroke="#ff7968" opacity=".85"/><path d="M420 23h370" stroke="#ffc56c" opacity=".85"/><path d="M420 26h370" stroke="#e1ed88" opacity=".85"/><path d="M420 29h370" stroke="#98e3b2" opacity=".85"/><path d="M420 32h370" stroke="#78d9dc" opacity=".85"/><path d="M420 35h370" stroke="#91bfff" opacity=".85"/><path d="M420 38h370" stroke="#b2a4ed" opacity=".85"/><text x="956" y="38" font-size="16" fill="#b7f6cf" >ACESAVA / ARCHIVE</text>
+<rect width="1200" height="60" fill="url(#scan)" pointer-events="none"/>
+</svg>
