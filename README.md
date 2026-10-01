@@ -15,5 +15,5 @@
 </p>
 
 <p align="center">
-  <picture><source media="(max-width: 640px)" srcset="assets/contributions-mobile.svg" /><img src="assets/contributions.svg" width="100%" alt="Combined Account Contribution topography — one continuous landscape of listed monthly contributions from June 2018 through the latest daily refresh, combining the supplied archive with subsequent acesava account activity." /></picture>
+  <picture><source media="(max-width: 640px)" srcset="assets/contributions-mobile.svg" /><img src="assets/contributions.svg" width="100%" alt="Combined Account Contribution topography — an illustrative landscape from June 2018 through the latest daily refresh. Terrain heights are artistic; the displayed total and embedded monthly records preserve the combined account contribution counts." /></picture>
 </p>

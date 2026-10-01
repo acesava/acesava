@@ -2,7 +2,9 @@
 
 The visible profile is intentionally compact: original island artwork, name and location, repository and LinkedIn links, then one continuous contribution landscape. Project panels and the extra footer are no longer displayed or regenerated.
 
-The graph groups listed daily contributions by calendar month. Each month has one crystal whose height uses a shared linear scale. Rainbow color follows the timeline. The last month is partial through the stated refresh date. Desktop and mobile use separate layouts of the same data.
+The landscape groups listed daily contributions by calendar month. Each month has one crystal with an illustrative height: the silhouette rises through 2022–2023, dips slightly in 2024, then climbs consistently from 2025 to the latest month. Heights do not encode contribution counts. The headline total and embedded monthly/daily records retain the source values. Rainbow color follows the timeline. The last month is partial through the stated refresh date. Desktop and mobile use separate layouts of the same data.
+
+The artistic slope from 2025 is interpolated to the latest displayed month, so it gradually reshapes as new months are added. This changes only the composition, never historical source counts.
 
 ## Contribution sources
 
@@ -28,6 +30,6 @@ Offline rendering uses `profile.json` and a saved `recent-contributions.json` Gr
 python3 scripts/update_profile.py --input-dir /path/to/metadata --as-of 2026-10-01
 ```
 
-`scripts/render_landscape.py` verifies totals, unique dates, nonnegative integer counts, and coverage before rendering. Daily records remain embedded under their monthly groups for reconciliation. The legend identifies the aggregation as listed monthly contributions.
+`scripts/render_landscape.py` verifies totals, unique dates, nonnegative integer counts, and coverage before rendering. Daily records remain embedded under their monthly groups for reconciliation. The visible legend states “STYLIZED TERRAIN · HEIGHTS ILLUSTRATIVE”; the accessible description and month titles also distinguish artistic heights from source counts.
 
 Custom styles remain inside the images and do not change GitHub's surrounding layout or theme. The operator cursor honors reduced-motion preferences.

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Render one continuous monthly contribution landscape.
+"""Render an illustrative monthly contribution landscape.
 
-Monthly heights sum the listed daily records. Missing records are never invented
-as zeroes; every supplied date is preserved as metadata within its month.
+The terrain follows the requested art direction, not a quantitative height scale.
+Real totals and daily records are preserved; unlisted months remain gaps.
 """
 
 from __future__ import annotations
@@ -21,6 +21,27 @@ def _points(vertices: list[tuple[float, float]]) -> str:
 
 def _color(hue: float, value: float = 1.0, saturation: float = .60) -> str:
     return "#" + "".join(f"{round(c * 255):02x}" for c in colorsys.hsv_to_rgb(hue % 1, saturation, value))
+
+
+def _terrain_level(month: date, end: date) -> float:
+    """Art-directed silhouette, explicitly independent of contribution counts."""
+    position = month.year + (month.month - 1) / 12
+    anchors = [
+        (2018.0, .13), (2019.0, .18), (2020.0, .21), (2021.0, .22),
+        (2022.0, .36), (2023.0, .59), (2023 + 11 / 12, .66),
+        (2024 + 11 / 12, .55), (2025.0, .56),
+    ]
+    latest = end.year + (end.month - 1) / 12
+    if latest > 2025:
+        anchors.append((latest, .97))
+    if position <= anchors[0][0]:
+        return anchors[0][1]
+    for (left, low), (right, high) in zip(anchors, anchors[1:]):
+        if position <= right:
+            t = (position - left) / (right - left)
+            # Smoothstep preserves the direction between each pair of anchors.
+            return low + (high - low) * t * t * (3 - 2 * t)
+    return anchors[-1][1]
 
 
 def _validated_days(dataset: dict) -> tuple[date, date, dict[date, int]]:
@@ -48,7 +69,7 @@ def _validated_days(dataset: dict) -> tuple[date, date, dict[date, int]]:
 
 
 def render_landscape(dataset: dict, output_path: Path, mobile: bool = False) -> None:
-    """Write a self-contained crystal panorama, one height-scaled gem per month."""
+    """Write a crystal panorama with illustrative heights and real count metadata."""
     start, end, days = _validated_days(dataset)
     total = sum(days.values())
     months: list[date] = []
@@ -60,7 +81,6 @@ def render_landscape(dataset: dict, output_path: Path, mobile: bool = False) -> 
     for day, count in sorted(days.items()):
         by_month[date(day.year, day.month, 1)].append((day, count))
     month_totals = {month: sum(count for _, count in records) for month, records in by_month.items()}
-    peak = max(month_totals.values(), default=0)
     width, height = (600, 480) if mobile else (1200, 530)
     margin = 28 if mobile else 40
     title = str(dataset.get("title") or "Combined Account Contribution topography")
@@ -68,8 +88,10 @@ def render_landscape(dataset: dict, output_path: Path, mobile: bool = False) -> 
         f"{title}. {start:%d %B %Y} to {end:%d %B %Y}. "
         f"{total:,} contributions from {len(days):,} listed dates. "
         "One continuous chronological landscape, with one crystal per calendar month. "
-        "Height is linear in the sum of that month's listed daily contributions. "
-        f"The tallest month contains {peak:,} listed contributions. "
+        "Terrain heights are illustrative, not proportional to contribution counts. "
+        "The artistic silhouette rises in 2022 and 2023, dips slightly in 2024, "
+        "then climbs consistently from 2025 through the latest displayed month. "
+        "The headline total and each month's embedded daily records retain the source counts. "
         "Months without listed records remain gaps, not confirmed zeroes. "
         "The final month is partial when the end date is before month end."
     )
@@ -140,31 +162,29 @@ def render_landscape(dataset: dict, output_path: Path, mobile: bool = False) -> 
         records = by_month[month]
         month_total = month_totals[month]
         month_key = month.strftime("%Y-%m")
-        label = f"{month:%B %Y}: {month_total:,} listed contributions across {len(records)} listed dates" if records else f"{month:%B %Y}: no listed records"
+        label = f"{month:%B %Y}: {month_total:,} listed contributions across {len(records)} listed dates; terrain height is illustrative" if records else f"{month:%B %Y}: no listed records"
         total_attribute = f' data-total="{month_total}"' if records else ""
         svg.append(f'<g data-month="{month_key}"{total_attribute} data-listed-dates="{len(records)}"><title>{escape(label)}</title>')
         for day, count in records:
             svg.append(f'<g data-date="{day}" data-count="{count}"><title>{day}: {count} contribution{"s" if count != 1 else ""}</title></g>')
         if records:
             base = [point(mi + .1, .35), point(mi + .9, .35), point(mi + .9, .65), point(mi + .1, .65)]
-            if month_total == 0:
-                polygon(base, "#183d2b", "#547b5f")
-            else:
-                crystal_height = max_height * month_total / peak
-                shoulder_height = crystal_height * .66
-                shoulders = [(x, y - shoulder_height) for x, y in base]
-                tip = point(mi + .50, .49, crystal_height)
-                hue = .045 + .745 * (mi + .5) / len(months)
-                polygon([base[3], base[2], shoulders[2], shoulders[3]], _color(hue, .34, .56), _color(hue, .54, .46))
-                polygon([base[1], base[2], shoulders[2], shoulders[1]], _color(hue, .22, .5), _color(hue, .39, .4))
-                polygon([shoulders[0], shoulders[1], tip], _color(hue, .65, .37), _color(hue, .82, .30))
-                polygon([shoulders[1], shoulders[2], tip], _color(hue, .48, .54), _color(hue, .64, .42))
-                polygon([shoulders[2], shoulders[3], tip], _color(hue, .86, .22), _color(hue, .98, .17))
-                polygon([shoulders[3], shoulders[0], tip], _color(hue, .66, .35), _color(hue, .85, .25))
-                svg.append(f'<path d="M{tip[0]:.2f},{tip[1]:.2f}L{shoulders[3][0]:.2f},{shoulders[3][1]:.2f}" stroke="{_color(hue, .98, .14)}" stroke-width=".7"/>')
-                if month_total >= peak * .75:
-                    svg.append(f'<circle cx="{tip[0]:.2f}" cy="{tip[1]:.2f}" r="2.1" fill="{_color(hue, 1, .17)}" opacity=".55" filter="url(#peak-glow)"/>')
-                    svg.append(f'<circle cx="{tip[0]:.2f}" cy="{tip[1]:.2f}" r=".9" fill="#eff7e3"/>')
+            terrain_level = _terrain_level(month, end)
+            crystal_height = max_height * terrain_level
+            shoulder_height = crystal_height * .66
+            shoulders = [(x, y - shoulder_height) for x, y in base]
+            tip = point(mi + .50, .49, crystal_height)
+            hue = .045 + .745 * (mi + .5) / len(months)
+            polygon([base[3], base[2], shoulders[2], shoulders[3]], _color(hue, .34, .56), _color(hue, .54, .46))
+            polygon([base[1], base[2], shoulders[2], shoulders[1]], _color(hue, .22, .5), _color(hue, .39, .4))
+            polygon([shoulders[0], shoulders[1], tip], _color(hue, .65, .37), _color(hue, .82, .30))
+            polygon([shoulders[1], shoulders[2], tip], _color(hue, .48, .54), _color(hue, .64, .42))
+            polygon([shoulders[2], shoulders[3], tip], _color(hue, .86, .22), _color(hue, .98, .17))
+            polygon([shoulders[3], shoulders[0], tip], _color(hue, .66, .35), _color(hue, .85, .25))
+            svg.append(f'<path d="M{tip[0]:.2f},{tip[1]:.2f}L{shoulders[3][0]:.2f},{shoulders[3][1]:.2f}" stroke="{_color(hue, .98, .14)}" stroke-width=".7"/>')
+            if terrain_level >= .90:
+                svg.append(f'<circle cx="{tip[0]:.2f}" cy="{tip[1]:.2f}" r="2.1" fill="{_color(hue, 1, .17)}" opacity=".55" filter="url(#peak-glow)"/>')
+                svg.append(f'<circle cx="{tip[0]:.2f}" cy="{tip[1]:.2f}" r=".9" fill="#eff7e3"/>')
         svg.append('</g>')
 
     year_markers = [(0, start.year)] + [(i, m.year) for i, m in enumerate(months) if m.month == 1 and i]
@@ -177,7 +197,7 @@ def render_landscape(dataset: dict, output_path: Path, mobile: bool = False) -> 
 
     footer_line = 410 if mobile else 474
     svg.append(f'<path d="M{margin} {footer_line}H{width-margin}" stroke="#284c3b"/>')
-    text(margin, footer_line + 26, "LISTED CONTRIBUTIONS BY MONTH", 15 if mobile else 17, "#abccb8", 'letter-spacing=".5"')
+    text(margin, footer_line + 26, "STYLIZED TERRAIN · HEIGHTS ILLUSTRATIVE", 15 if mobile else 17, "#abccb8", 'letter-spacing=".5"')
     date_label = f"{start:%b %Y} — {end:%d %b %Y}".upper()
     if mobile:
         text(margin, footer_line + 49, date_label, 14, "#8ba995", 'letter-spacing=".7"')
