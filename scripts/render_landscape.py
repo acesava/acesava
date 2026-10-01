@@ -198,7 +198,7 @@ def render_landscape(dataset: dict, output_path: Path, mobile: bool = False) -> 
     footer_line = 410 if mobile else 474
     svg.append(f'<path d="M{margin} {footer_line}H{width-margin}" stroke="#284c3b"/>')
     text(margin, footer_line + 26, "STYLIZED TERRAIN · HEIGHTS ILLUSTRATIVE", 15 if mobile else 17, "#abccb8", 'letter-spacing=".5"')
-    date_label = f"{start:%b %Y} — {end:%d %b %Y}".upper()
+    date_label = f"{start:%b %Y} — PRESENT".upper()
     if mobile:
         text(margin, footer_line + 49, date_label, 14, "#8ba995", 'letter-spacing=".7"')
     else:
