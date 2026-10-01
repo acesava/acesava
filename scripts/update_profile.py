@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Generate profile instruments from public metadata and the supplied contribution archive."""
+"""Generate the minimal profile and extend its archived contributions through today."""
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 from html import escape
 import json
 import os
 from pathlib import Path
 import urllib.request
 
-from render_landscape import render_landscape
-from project_panels import monitor, monitor_mobile
+from render_landscape import render_landscape, _validated_days
 
 ROOT = Path(__file__).resolve().parents[1]
 INK = "#030908"
@@ -59,73 +59,128 @@ def spectrum(x, y, width=300):
     return ''.join(f'<path d="M{x} {y+i*3}h{width}" stroke="{c}" opacity=".85"/>' for i,c in enumerate(RAINBOW))
 
 
-def intro(profile, repos, updated):
+def intro(profile):
     name = (profile.get("name") or "acesava").strip()
     location = (profile.get("location") or "").strip()
-    body = text(32, 43, "01 / OPERATOR", 18, DIM)
-    body += text(32, 100, name.upper(), 42)
-    body += '<rect class="blink" x="182" y="72" width="20" height="31" fill="#b7f6cf"/>'
-    body += text(32, 140, "@acesava", 22, BLUE)
-    body += '<path d="M450 28V154" stroke="#32534a"/>'
-    body += text(487, 57, "LOCATION", 17, DIM) + text(487, 89, location, 23)
-    body += text(1003, 44, "DISPLAY / 01", 15, DIM)
-    body += spectrum(950, 80, 210)
-    body += text(950, 140, updated[:10] + " UTC", 15, DIM)
-    return svg("Ace S — acesava. Public GitHub profile information.", 178, body)
+    body = text(32, 77, name.upper(), 42)
+    body += '<rect class="blink" x="182" y="49" width="20" height="31" fill="#b7f6cf"/>'
+    body += text(32, 120, "@acesava", 22, BLUE)
+    body += '<path d="M450 28V132" stroke="#32534a"/>'
+    body += text(487, 65, "LOCATION", 17, DIM) + text(487, 103, location, 23)
+    body += spectrum(950, 72, 210)
+    return svg("Ace S — acesava. San Francisco, CA.", 160, body)
 
 
-def footer():
-    body = text(30,38,"END OF TRANSMISSION",16,DIM)
-    body += spectrum(420,20,370)
-    body += text(956,38,"ACESAVA / ARCHIVE",16,MINT)
-    return svg("End of transmission — acesava",60,body)
+def intro_mobile(profile):
+    body = text(25, 65, (profile.get("name") or "acesava").strip().upper(), 42)
+    body += '<rect class="blink" x="180" y="34" width="20" height="32" fill="#b7f6cf"/>'
+    body += text(25, 107, "@acesava", 23, BLUE)
+    body += spectrum(359, 48, 213)
+    body += text(25, 149, (profile.get("location") or "").strip(), 22)
+    return svg("Ace S — acesava. San Francisco, CA.", 178, body, 600)
 
 
-def intro_mobile(profile, repos, updated):
-    body = text(25,38,"01 / OPERATOR",17,DIM)
-    body += text(25,96,(profile.get("name") or "acesava").strip().upper(),42)
-    body += '<rect class="blink" x="180" y="65" width="20" height="32" fill="#b7f6cf"/>'
-    body += text(25,136,"@acesava",23,BLUE)
-    body += spectrum(359,69,213)
-    body += text(25,184,(profile.get("location") or "").strip(),22)
-    body += text(360,184,updated[:10]+" UTC",16,DIM)
-    return svg("Ace S — acesava. Public GitHub profile information.",210,body,600)
+def calendar_days(result):
+    """Read a GraphQL response without silently replacing unavailable data."""
+    if result.get("errors"):
+        raise ValueError("GitHub contribution query returned errors")
+    calendar = result["data"]["user"]["contributionsCollection"]["contributionCalendar"]
+    rows = [day for week in calendar["weeks"] for day in week["contributionDays"]]
+    if sum(row["contributionCount"] for row in rows) != calendar["totalContributions"]:
+        raise ValueError("GitHub calendar total does not reconcile to its daily counts")
+    return rows
+
+
+def fetch_recent(start, end):
+    """GitHub permits at most one year per contribution-calendar query."""
+    query = """query($from: DateTime!, $to: DateTime!) {
+      user(login: "acesava") {
+        contributionsCollection(from: $from, to: $to) {
+          contributionCalendar {
+            totalContributions
+            weeks { contributionDays { date contributionCount } }
+          }
+        }
+      }
+    }"""
+    rows = []
+    cursor = start
+    while cursor <= end:
+        last = min(end, cursor + timedelta(days=364))
+        result = api("graphql", {"query": query, "variables": {
+            "from": cursor.isoformat() + "T00:00:00Z",
+            "to": last.isoformat() + "T23:59:59Z",
+        }})
+        rows.extend(calendar_days(result))
+        cursor = last + timedelta(days=1)
+    return rows
+
+
+def combine_archive(archive, recent_rows, today):
+    """Preserve the archive, then append disjoint, complete current-account days."""
+    start, cutoff, archived_days = _validated_days(archive)
+    if today <= cutoff:
+        raise ValueError("The refresh date must follow the supplied archive coverage")
+    recent = {}
+    for row in recent_rows:
+        day = date.fromisoformat(row["date"])
+        count = row["contributionCount"]
+        if not cutoff < day <= today:
+            raise ValueError(f"Current-account date {day} overlaps the archive or is outside the refresh range")
+        if day in recent:
+            raise ValueError(f"Duplicate current-account date: {day}")
+        if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+            raise ValueError(f"Invalid current-account contribution count: {count!r}")
+        recent[day] = count
+    expected = {cutoff + timedelta(days=i) for i in range(1, (today-cutoff).days+1)}
+    if set(recent) != expected:
+        raise ValueError("Current-account calendar is incomplete; keeping the existing display")
+    combined = archived_days | recent
+    return {
+        "title": "Combined Account Contribution topography",
+        "startDate": start.isoformat(),
+        "endDate": today.isoformat(),
+        "totalContributions": sum(combined.values()),
+        "sources": [
+            {"type": "user-supplied", "path": "data/contributions.json",
+             "startDate": start.isoformat(), "endDate": cutoff.isoformat(),
+             "totalContributions": sum(archived_days.values())},
+            {"type": "github", "account": "acesava",
+             "startDate": (cutoff+timedelta(days=1)).isoformat(),
+             "endDate": today.isoformat(), "totalContributions": sum(recent.values())},
+        ],
+        "note": "The supplied archive is preserved through its stated end date. Subsequent days come from the acesava GitHub calendar. Missing archive dates are unlisted, not confirmed zero. The current date and month may be partial.",
+        "days": [{"date": day.isoformat(), "contributionCount": count}
+                 for day, count in sorted(combined.items())],
+    }
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input-dir",type=Path,help="Use previously fetched public profile.json and repos.json")
+    parser.add_argument("--input-dir", type=Path,
+                        help="Offline profile.json and recent-contributions.json GraphQL response")
+    parser.add_argument("--as-of", type=date.fromisoformat,
+                        default=datetime.now(ZoneInfo("America/Los_Angeles")).date(),
+                        help="Final displayed date; defaults to today in America/Los_Angeles")
     args = parser.parse_args()
+    archive = json.loads((ROOT/"data"/"contributions.json").read_text())
+    _, cutoff, _ = _validated_days(archive)
     if args.input_dir:
-        profile,repos = [json.loads((args.input_dir/f'{name}.json').read_text()) for name in ("profile","repos")]
+        profile = json.loads((args.input_dir/"profile.json").read_text())
+        recent = calendar_days(json.loads((args.input_dir/"recent-contributions.json").read_text()))
     else:
         profile = api("users/acesava")
-        repos = api("users/acesava/repos?per_page=100&type=owner")
-    calendar = json.loads((ROOT/"data"/"contributions.json").read_text())
-    if not calendar.get("days"):
-        raise RuntimeError("Refusing to replace the supplied contribution archive with empty data")
-    repos = [r for r in repos if not r.get("private",False)]
-    updated = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        recent = fetch_recent(cutoff+timedelta(days=1), args.as_of)
+    dataset = combine_archive(archive, recent, args.as_of)
     assets = ROOT/"assets"
     assets.mkdir(exist_ok=True)
-    (assets/"operator.svg").write_text(intro(profile,repos,updated))
-    (assets/"operator-mobile.svg").write_text(intro_mobile(profile,repos,updated))
-    projects = [
-        ("project-restaurants.svg",1,["LOS ANGELES","RESTAURANT STUDY"],"Korean restaurants + KBBQ. Public data, reproducible estimates.","PERMITS / OPEN MAPS / PYTHON","map"),
-        ("project-noodles.svg",2,["BLACK BEAN NOODLES","ACROSS NEIGHBORHOODS"],"Jjajangmyeon + zhajiangmian across Los Angeles and San Francisco.","MENUS / NEIGHBORHOODS / RESEARCH","signal"),
-        ("project-display.svg",3,["THE DISPLAY ENGINE"],"The artwork, source, and generated instruments behind this profile.","SVG / PYTHON / GITHUB ACTIONS","prism"),
-    ]
-    names = {r["name"] for r in repos}
-    required = {"la-korean-restaurants","jjajangmyeon-restaurants","acesava"}
-    if not required <= names:
-        raise RuntimeError("A featured public repository is missing; review the index before updating")
-    for file,index,title,subtitle,tag,variant in projects:
-        (assets/file).write_text(monitor(index,title,subtitle,tag,variant))
-        (assets/file.replace('.svg','-mobile.svg')).write_text(monitor_mobile(index,title,subtitle,tag,variant))
-    (assets/"footer.svg").write_text(footer())
-    render_landscape(calendar,assets/"contributions.svg")
-    render_landscape(calendar,assets/"contributions-mobile.svg",mobile=True)
-    print(f"Rendered profile from {len(repos)} public repositories and {calendar['totalContributions']} supplied contributions.")
+    render_landscape(dataset, assets/"contributions.svg")
+    render_landscape(dataset, assets/"contributions-mobile.svg", mobile=True)
+    (assets/"operator.svg").write_text(intro(profile))
+    (assets/"operator-mobile.svg").write_text(intro_mobile(profile))
+    (ROOT/"data"/"combined-contributions.json").write_text(json.dumps(dataset, indent=2)+"\n")
+    print(f"Rendered {dataset['totalContributions']:,} combined contributions through {args.as_of}: "
+          f"{archive['totalContributions']:,} archived + {dataset['sources'][1]['totalContributions']:,} current-account contributions.")
 
 
 if __name__ == "__main__":
