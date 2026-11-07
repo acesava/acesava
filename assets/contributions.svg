@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="530" viewBox="0 0 1200 530" role="img" aria-labelledby="landscape-title landscape-desc">
 <title id="landscape-title">Combined Account Contribution topography</title>
-<desc id="landscape-desc">Combined Account Contribution topography. 01 June 2018 to 06 November 2026. 8,191 contributions from 1,817 listed dates. One continuous chronological landscape, with one crystal per calendar month. Terrain heights are illustrative, not proportional to contribution counts. The artistic silhouette rises in 2022 and 2023, dips slightly in 2024, then climbs consistently from 2025 through the latest displayed month. The headline total and each month&#x27;s embedded daily records retain the source counts. Months without listed records remain gaps, not confirmed zeroes. The final month is partial when the end date is before month end.</desc>
+<desc id="landscape-desc">Combined Account Contribution topography. 01 June 2018 to 07 November 2026. 8,199 contributions from 1,818 listed dates. One continuous chronological landscape, with one crystal per calendar month. Terrain heights are illustrative, not proportional to contribution counts. The artistic silhouette rises in 2022 and 2023, dips slightly in 2024, then climbs consistently from 2025 through the latest displayed month. The headline total and each month&#x27;s embedded daily records retain the source counts. Months without listed records remain gaps, not confirmed zeroes. The final month is partial when the end date is before month end.</desc>
 <defs>
   <linearGradient id="spectrum"><stop stop-color="#f4aa85"/><stop offset=".2" stop-color="#e1dd8b"/><stop offset=".4" stop-color="#91e4b0"/><stop offset=".61" stop-color="#81d1e2"/><stop offset=".8" stop-color="#92aceb"/><stop offset="1" stop-color="#d7a5e4"/></linearGradient>
   <linearGradient id="depth" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#163e31"/><stop offset="1" stop-color="#020908"/></linearGradient>
@@ -16,7 +16,7 @@
 
 <text x="40" y="62" font-size="34" fill="#c0ead0" letter-spacing="1.2">COMBINED ACCOUNT</text>
 <text x="40" y="99" font-size="28" fill="#accfbd" letter-spacing=".5">CONTRIBUTION TOPOGRAPHY</text>
-<text x="1160" y="68" font-size="50" fill="#d8f1df" text-anchor="end" letter-spacing="2">8,191</text>
+<text x="1160" y="68" font-size="50" fill="#d8f1df" text-anchor="end" letter-spacing="2">8,199</text>
 <text x="1160" y="98" font-size="15" fill="#90b7a0" text-anchor="end" letter-spacing="1.8">CONTRIBUTIONS</text>
 <path d="M40 122H1160" stroke="#284c3b"/>
 <ellipse cx="600" cy="344" rx="552" ry="150" fill="url(#halo)"/>
@@ -132,13 +132,14 @@
 <path d="M92.00,423.00L1128.00,359.00" stroke="url(#spectrum)" stroke-width=".8" opacity="0.7"/>
 <path d="M92.00,427.00L1128.00,363.00" stroke="url(#spectrum)" stroke-width=".8" opacity="0.3"/>
 <path d="M92.00,431.00L1128.00,367.00" stroke="url(#spectrum)" stroke-width=".8" opacity="0.15"/>
-<g data-month="2026-11" data-total="35" data-listed-dates="6"><title>November 2026: 35 listed contributions across 6 listed dates; terrain height is illustrative</title>
+<g data-month="2026-11" data-total="43" data-listed-dates="7"><title>November 2026: 43 listed contributions across 7 listed dates; terrain height is illustrative</title>
 <g data-date="2026-11-01" data-count="9"><title>2026-11-01: 9 contributions</title></g>
 <g data-date="2026-11-02" data-count="7"><title>2026-11-02: 7 contributions</title></g>
 <g data-date="2026-11-03" data-count="4"><title>2026-11-03: 4 contributions</title></g>
 <g data-date="2026-11-04" data-count="8"><title>2026-11-04: 8 contributions</title></g>
 <g data-date="2026-11-05" data-count="6"><title>2026-11-05: 6 contributions</title></g>
-<g data-date="2026-11-06" data-count="1"><title>2026-11-06: 1 contribution</title></g>
+<g data-date="2026-11-06" data-count="9"><title>2026-11-06: 9 contributions</title></g>
+<g data-date="2026-11-07" data-count="0"><title>2026-11-07: 0 contributions</title></g>
 <polygon points="1111.86,342.46 1119.98,341.96 1119.98,226.73 1111.86,227.23" fill="#492657" stroke="#784a8a"/>
 <polygon points="1113.98,328.16 1119.98,341.96 1119.98,226.73 1113.98,212.93" fill="#301c38" stroke="#583c63"/>
 <polygon points="1105.86,213.43 1113.98,212.93 1112.72,160.25" fill="#9468a6" stroke="#bf92d1"/>
